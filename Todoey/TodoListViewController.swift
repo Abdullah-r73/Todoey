@@ -34,7 +34,7 @@ class TodoListViewController: UITableViewController {
         
     }
     
-    //mark - TableView Delagate Methods
+    //Mark - TableView Delagate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
         print(itemArray[indexPath.row])
@@ -48,6 +48,29 @@ class TodoListViewController: UITableViewController {
         } else {
             tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         }
+    }
+    
+    //Mark - Add New Items
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            //What happen onc theuseclic the add  Item buuton on ou UIAlert
+            print(textField.text)
+        }
+        
+        //Add textfield to alert alert message
+        alert.addTextField(configurationHandler: { (alertTextField) in
+            alertTextField.placeholder = "Create New Item"
+            textField = alertTextField
+        })
+        
+        alert.addAction(action)
+        
+        present(alert, animated: true, completion: nil)
     }
     
 }
