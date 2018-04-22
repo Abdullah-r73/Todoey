@@ -12,23 +12,22 @@ class TodoListViewController: UITableViewController {
     
     var itemArray = [Item]()
     
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
     //Create default object to save items in array after app is terminated. (userDefaults #1)
-    let defaults = UserDefaults.standard
+    //let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
+
+        
+        print(dataFilePath)
+    
+        loadItems()
+        
         //To retrive the data to the tableView (userDefaults #3)
-        
-        let newItem1 = Item()
-        newItem1.title = "Floyd"
-        itemArray.append(newItem1)
-        
-        let newItem2 = Item()
-        newItem2.title = "Grant"
-        itemArray.append(newItem2)
-        
-//        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+//        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
 //
 //            itemArray = items
 //
@@ -50,6 +49,11 @@ class TodoListViewController: UITableViewController {
         
         cell.textLabel?.text = item.title
         
+        //Ternary Operater ==>
+        // value = condition ? valueIfTrue : valueIfFalse
+        //cell.accessoryType = item.done == true ? .checkmark : .none
+        
+        //Equivlent to the Ternary expression
         if item.done == true {
             cell.accessoryType = .checkmark
         } else {
@@ -74,7 +78,8 @@ class TodoListViewController: UITableViewController {
 //            itemArray[indexPath.row].done = false
 //        }
         
-        tableView.reloadData()
+        saveItems()
+       
         
         //When you click row the highlighted area flashes
         tableView.deselectRow(at: indexPath, animated: true)
@@ -102,10 +107,7 @@ class TodoListViewController: UITableViewController {
             
             self.itemArray.append(newItem)
             
-            //Set the input item into a localStorage (userDefaults #2)
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
-            
-            self.tableView.reloadData()
+            self.saveItems()
         }
         
         //Add textfield to alert alert message
@@ -117,6 +119,34 @@ class TodoListViewController: UITableViewController {
         alert.addAction(action)
         
         present(alert, animated: true, completion: nil)
+    }
+    //MARK - Model Manuplation Method
+    func saveItems() {
+        
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Error encoding item array, \(error)")
+        }
+        
+        tableView.reloadData()
+    }
+    
+    func loadItems() {
+        
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            
+            let decoder = PropertyListDecoder()
+            
+            do {
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Error decoding itm array, \(error)")
+            }
+        }
     }
     
 }
