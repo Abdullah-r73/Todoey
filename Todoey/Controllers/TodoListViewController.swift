@@ -26,7 +26,7 @@ class TodoListViewController: UITableViewController {
         //file path ware all new entries are saved in the DataCore
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist"))
 
-//        loadItems()
+        loadItems()
         
         //To retrive the data to the tableView (userDefaults #3)
 //        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
@@ -51,10 +51,6 @@ class TodoListViewController: UITableViewController {
         
         cell.textLabel?.text = item.title
         
-        //Ternary Operater ==>
-        // value = condition ? valueIfTrue : valueIfFalse
-        //cell.accessoryType = item.done == true ? .checkmark : .none
-        
         //Equivlent to the Ternary expression
         if item.done == true {
             cell.accessoryType = .checkmark
@@ -69,9 +65,11 @@ class TodoListViewController: UITableViewController {
     //Mark - TableView Delagate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
-        //print(itemArray[indexPath.row])
+        //Deleting content from the itemArray and the CoreData
+//        context.delete(itemArray[indexPath.row])
+//        itemArray.remove(at: indexPath.row)
         
-        
+        //Toggling done aatribute from true to false (check mark off & on)
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
 //        if itemArray[indexPath.row].done == false {
@@ -128,8 +126,6 @@ class TodoListViewController: UITableViewController {
     //MARK - Model Manuplation Method
     func saveItems() {
         
-        let encoder = PropertyListEncoder()
-        
         do {
             try context.save()
         } catch {
@@ -139,19 +135,46 @@ class TodoListViewController: UITableViewController {
         tableView.reloadData()
     }
     
-//    func loadItems() {
-//
-//        if let data = try? Data(contentsOf: dataFilePath!) {
-//
-//            let decoder = PropertyListDecoder()
-//
-//            do {
-//                itemArray = try decoder.decode([Item].self, from: data)
-//            } catch {
-//                print("Error decoding itm array, \(error)")
-//            }
-//        }
-//    }
+    func loadItems() {
+
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        do {
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error fetching data from context \(error)")
+        }
+    }
     
+}
+
+//MARK: - Search bar methods
+extension TodoListViewController: UISearchBarDelegate {
+    
+    //This tells the delegate the search button was taped
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        //Declare request it returns array of Items
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
+        //Specifys how we want to query the database
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        request.predicate = predicate
+        
+        //Sorts the query request in alphebet order using the key(titlt)
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        
+        //Add sortDiscriptor to our request
+        request.sortDescriptors = [sortDescriptor]
+        
+        //Run the request and fetch the results
+        do {
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error fetching data from context \(error)")
+        }
+        
+        tableView.reloadData()
+    }
 }
 
