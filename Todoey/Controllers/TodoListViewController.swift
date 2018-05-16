@@ -100,7 +100,7 @@ class TodoListViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
-            //What happen onc theuseclic the add  Item buuton on ou UIAlert
+            //What happen when the user clicks the add  Item buuton on ou UIAlert
             
             
             let newItem = Item(context: self.context)
@@ -156,9 +156,10 @@ extension TodoListViewController: UISearchBarDelegate {
         //Declare request it returns array of Items
         let request : NSFetchRequest<Item> = Item.fetchRequest()
         
-        //Specifys how we want to query the database
+        //Specifys how we want to query the database (exmple we are using 'title')
         let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
+        //Add query to the request
         request.predicate = predicate
         
         //Sorts the query request in alphebet order using the key(titlt)
@@ -175,6 +176,19 @@ extension TodoListViewController: UISearchBarDelegate {
         }
         
         tableView.reloadData()
+    }
+    //After the x-button is pressed all of the list item are returned to the list
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            tableView.reloadData()
+            
+            //Tells keyboard to disapear and curser to disapear as well.
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
     }
 }
 
