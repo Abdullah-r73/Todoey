@@ -13,7 +13,8 @@ class TodoListViewController: UITableViewController {
     
     var itemArray = [Item]()
     
-    let context = (UIApplication.shared.delegate as! AppDelegate) . persistentContainer.viewContext
+    //This creats reads update and destroys. It also commuicates with the persistent container
+    let context = (UIApplication.shared.delegate as! AppDelegate) .persistentContainer.viewContext
     
     
     
@@ -44,6 +45,7 @@ class TodoListViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
+        //Allows reusable cell with identifier
         let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
         
         //Cut down on the the code repeating
@@ -95,10 +97,12 @@ class TodoListViewController: UITableViewController {
     //Mark - Add New Items
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
+        //Global verible for this block
         var textField = UITextField()
         
+        //What user will see when add button is pressed
         let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
-        
+        //Action for adding item to list
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             //What happen when the user clicks the add  Item buuton on ou UIAlert
             
