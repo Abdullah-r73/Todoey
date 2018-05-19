@@ -17,9 +17,9 @@ class CategoryViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        loadCategories()
         
+        loadCategories()
+
     }
 
     //MARK: - TableView Datasourse Method
@@ -40,8 +40,24 @@ class CategoryViewController: UITableViewController {
     }
     
     //MARK: - TableView Delegate Method
+    //Tells delegate thT the specified row is selected
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        performSegue(withIdentifier: "goToItems", sender: self)
+    }
     
-
+    //Notifies viewController that segue is about to be preformed
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        //Constante stores a reference to the destination ViewController
+        let destinationVC = segue.destination as! TodoListViewController
+        
+        //This identifies the current row that is selected
+        if let indexPath = tableView.indexPathForSelectedRow {
+            
+            destinationVC.selectedCategory = categories[indexPath.row]
+        }
+    }
 
     //MARK: - Data Manipulation Method
     func saveCategory() {

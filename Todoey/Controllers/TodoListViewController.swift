@@ -13,29 +13,22 @@ class TodoListViewController: UITableViewController {
     
     var itemArray = [Item]()
     
+    var selectedCategory : Category? {
+        didSet {
+             loadItems()
+        }
+    }
+    
+    
     //This creats reads update and destroys. It also commuicates with the persistent container
     let context = (UIApplication.shared.delegate as! AppDelegate) .persistentContainer.viewContext
     
-    
-    
-    //Create default object to save items in array after app is terminated. (userDefaults #1)
-    //let defaults = UserDefaults.standard
-
     override func viewDidLoad() {
         super.viewDidLoad()
         
         //file path ware all new entries are saved in the DataCore
         print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist"))
 
-        loadItems()
-        
-        //To retrive the data to the tableView (userDefaults #3)
-//        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-//
-//            itemArray = items
-//
-//        }
-        
     }
     //Mark - TableView Datasource methods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -67,31 +60,16 @@ class TodoListViewController: UITableViewController {
     //Mark - TableView Delagate Methods
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
 
-        //Deleting content from the itemArray and the CoreData
-//        context.delete(itemArray[indexPath.row])
-//        itemArray.remove(at: indexPath.row)
         
         //Toggling done aatribute from true to false (check mark off & on)
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
-        
-//        if itemArray[indexPath.row].done == false {
-//            itemArray[indexPath.row].done = true
-//        } else {
-//            itemArray[indexPath.row].done = false
-//        }
-        
+
         saveItems()
        
         
         //When you click row the highlighted area flashes
         tableView.deselectRow(at: indexPath, animated: true)
-        
-//        //Selecting and deselecting checkmark for each row
-//        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-//            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-//        } else {
-//            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-//        }
+
     }
     
     //Mark - Add New Items
@@ -110,7 +88,7 @@ class TodoListViewController: UITableViewController {
             let newItem = Item(context: self.context)
             newItem.title = textField.text!
             newItem.done = false
-            
+            newItem.parentCategory = self.selectedCategory
             self.itemArray.append(newItem)
             
             self.saveItems()
@@ -140,13 +118,25 @@ class TodoListViewController: UITableViewController {
     }
     
     func loadItems() {
+        
+        let request : NSFetchRequest<Item> = Item.fetchRequest(), predicate: NSPredicate? = nil
+        
+        //Used to quere the the database and filter the results.
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let addtionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, addtionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
 
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        
         do {
             itemArray = try context.fetch(request)
         } catch {
             print("Error fetching data from context \(error)")
         }
+        
     }
     
 }
@@ -169,9 +159,11 @@ extension TodoListViewController: UISearchBarDelegate {
         //Sorts the query request in alphebet order using the key(titlt)
         let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
         
-        //Add sortDiscriptor to our request
-        request.sortDescriptors = [sortDescriptor]
+        loadItems()
         
+        //Add sortDiscriptor to the request
+        request.sortDescriptors = [sortDescriptor]
+       
         //Run the request and fetch the results
         do {
             itemArray = try context.fetch(request)
